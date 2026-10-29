@@ -1,0 +1,51 @@
+# Craftista – Infrastructure (Terraform)
+
+Infrastructure-as-Code for the **DevOps Certification Project**: provisions the complete VM landscape for the [Craftista application](../devops-certification-project) on a **Proxmox VE** host using Terraform.
+
+> Final project of the **DevOps Engineer Certification Program (Liora)**
+> Authors: **Florian Munkelt · Jan Krüger**
+
+## What it creates
+
+From a single `terraform apply`, the configuration builds a template-and-clone setup on the Proxmox host `XX.XX.XX.XX` (**TEMPORARY REDACTION**):
+
+1. Downloads the official **Ubuntu 22.04 (Jammy) cloud image** to the Proxmox datastore
+2. Creates a **VM template** (`ubuntu-template`) from it – never started, marked `template = true`
+3. Clones the template **4×** into the running cluster VMs
+
+| VM | IP | Role |
+|---|---|---|
+| cluster-node-0 | XX.XX.XX.XX | k3s master (control plane) |
+| cluster-node-1 | XX.XX.XX.XX | k3s worker |
+| cluster-node-2 | XX.XX.XX.XX | k3s worker |
+| cluster-node-3 | XX.XX.XX.XX | PostgreSQL (outside the cluster) |
+
+All VMs sit on the private `XX.XX.XX.XX/XX` network behind the Proxmox host (gateway `XX.XX.XX.XX`) and are **not reachable from the internet** – access only via port forwarding / SSH jump host. (**TEMPORARY REDACTION**)
+
+## VM Specification
+
+- Ubuntu 22.04 LTS cloud image · machine `q35` · UEFI (**OVMF** + EFI disk)
+- **2 vCPU · 8 GB RAM · 20 GB disk** (datastore `vmdata`, VirtIO, iothread, discard)
+- Network bridge `vmbr0` · static IPv4 per clone index · DNS `1.1.1.1`
+- **cloud-init**: user `XX` (**TEMPORARY REDACTION**) with the Proxmox host's SSH public key injected
+
+## Requirements
+
+- Terraform with provider **`bpg/proxmox ~> 0.111`**
+- Proxmox API credentials set as **environment variables** on the host
+- SSH agent access as `XX` (**TEMPORARY REDACTION**; used by the provider to import the cloud image)
+
+## Usage
+
+```bash
+terraform init
+terraform plan
+terraform apply -parallelism=1 -auto-approve
+```
+
+> `-parallelism=1` is required: concurrent clone operations from the same template are unreliable on the Proxmox API.
+
+## Related
+
+- Application, CI/CD, Helm chart & monitoring: [`devops-certification-project`](../devops-certification-project)
+- Full project documentation (PDF) in that repo's `docs/` folder

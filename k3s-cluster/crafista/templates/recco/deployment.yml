@@ -1,0 +1,22 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ .Values.recco.name }}
+  namespace: {{ .Values.recco.namespace }}
+  labels:
+    app: {{ .Values.recco.name }}
+spec:
+  replicas: {{ .Values.recco.replicaCount }}
+  selector:
+    matchLabels:
+      app: {{ .Values.recco.name }}
+  template:
+    metadata:
+      labels:
+        app: {{ .Values.recco.name }}
+    spec:
+      containers:
+      - name: {{ .Values.recco.name }}
+        image: "{{ .Values.recco.image.repository }}:{{ .Values.recco.image.tag }}"
+        ports:
+        - containerPort: {{ .Values.recco.service.port }}

@@ -1,0 +1,75 @@
+name: Deploy Cluster manual
+on:
+  workflow_dispatch:
+    inputs:
+      release_name:
+        description: 'Helm release name'
+        required: true
+        default: 'release-crafista'
+      namespace:
+        description: 'Helm release namespace (K8s resources use "crafista" via chart values, regardless of this)'
+        required: true
+        default: 'default'
+      chart_path:
+        description: 'Local path to the Helm chart (relative to repo root)'
+        required: true
+        default: 'k3s-cluster/crafista'
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    env:
+      # TEMPORARY REDACTION: restore real host addresses and SSH usernames before deployment.
+      PROXY_HOST: XX.XX.XX.XX
+      PROXY_USER: XX
+      VM_HOST: XX.XX.XX.XX
+      VM_USER: XX
+      REMOTE_CHART_DIR: /tmp/crafista-chart
+      RESOURCE_NAMESPACE: crafista
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup SSH
+        run: |
+          mkdir -p ~/.ssh
+          echo "${{ secrets.SSH_PRIVATE_KEY }}" > ~/.ssh/id_rsa
+          chmod 600 ~/.ssh/id_rsa
+          ssh-keyscan -H ${{ env.PROXY_HOST }} >> ~/.ssh/known_hosts
+
+      - name: Copy Helm chart to Proxmox host
+        run: |
+          rsync -az --delete \
+            -e "ssh -i ~/.ssh/id_rsa" \
+            ${{ github.event.inputs.chart_path }}/ \
+            ${{ env.PROXY_USER }}@${{ env.PROXY_HOST }}:${{ env.REMOTE_CHART_DIR }}
+
+      - name: Copy Helm chart from Proxmox host to VM
+        run: |
+          ssh -i ~/.ssh/id_rsa ${{ env.PROXY_USER }}@${{ env.PROXY_HOST }} \
+            "rsync -az --delete ${{ env.REMOTE_CHART_DIR }}/ ${{ env.VM_USER }}@${{ env.VM_HOST }}:${{ env.REMOTE_CHART_DIR }}"
+
+      - name: Ensure resource namespace exists
+        run: |
+          ssh -i ~/.ssh/id_rsa ${{ env.PROXY_USER }}@${{ env.PROXY_HOST }} \
+            "ssh ${{ env.VM_USER }}@${{ env.VM_HOST }} 'kubectl get namespace ${{ env.RESOURCE_NAMESPACE }} || kubectl create namespace ${{ env.RESOURCE_NAMESPACE }}'"
+
+      - name: Deploy / Upgrade Helm release
+        run: |
+          ssh -i ~/.ssh/id_rsa ${{ env.PROXY_USER }}@${{ env.PROXY_HOST }} \
+            "ssh ${{ env.VM_USER }}@${{ env.VM_HOST }} 'helm upgrade --install ${{ github.event.inputs.release_name }} ${{ env.REMOTE_CHART_DIR }} --namespace ${{ github.event.inputs.namespace }}'"
+
+      - name: Show Helm releases
+        run: |
+          ssh -i ~/.ssh/id_rsa ${{ env.PROXY_USER }}@${{ env.PROXY_HOST }} \
+            "ssh ${{ env.VM_USER }}@${{ env.VM_HOST }} 'helm ls -n ${{ github.event.inputs.namespace }}'"
+
+      - name: Show Helm release status
+        run: |
+          ssh -i ~/.ssh/id_rsa ${{ env.PROXY_USER }}@${{ env.PROXY_HOST }} \
+            "ssh ${{ env.VM_USER }}@${{ env.VM_HOST }} 'helm status ${{ github.event.inputs.release_name }} -n ${{ github.event.inputs.namespace }}'"
+
+      - name: Show cluster state (resource namespace)
+        run: |
+          ssh -i ~/.ssh/id_rsa ${{ env.PROXY_USER }}@${{ env.PROXY_HOST }} \
+            "ssh ${{ env.VM_USER }}@${{ env.VM_HOST }} 'kubectl get all -n ${{ env.RESOURCE_NAMESPACE }}'"

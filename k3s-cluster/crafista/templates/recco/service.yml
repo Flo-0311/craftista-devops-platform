@@ -1,0 +1,14 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ .Values.recco.name }}
+  namespace: {{ .Values.recco.namespace }}
+  labels:
+    app: {{ .Values.recco.name }}
+spec:
+  type: {{ .Values.recco.service.type }}
+  ports:
+  - port: {{ .Values.recco.service.port }}
+    targetPort: {{ .Values.recco.service.port }}
+  selector:
+    app: {{ .Values.recco.name }}

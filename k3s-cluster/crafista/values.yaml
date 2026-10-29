@@ -1,0 +1,76 @@
+database:
+  # TEMPORARY REDACTION: restore the database connection details before deployment.
+  host: XX.XX.XX.XX
+  port: 5432
+  name: catalogue-db
+  namespace: crafista
+  user: XX
+  password: XX
+
+catalogue:
+  name: catalogue
+  namespace: crafista
+  replicaCount: 1
+  image:
+    repository: datascientestjkr/devops-certification-project-catalogue
+    tag: latest
+  service:
+    port: 5000
+    type: ClusterIP
+  database:
+    name: catalogue-db
+
+
+frontend:
+  name: frontend
+  namespace: crafista
+  replicaCount: 2
+  image:
+    repository: datascientestjkr/devops-certification-project-frontend
+    tag: latest
+  service:
+    port: 3000
+    type: ClusterIP
+  resources:
+    requests:
+      cpu: 100m
+      memory: 128Mi
+    limits:
+      cpu: 500m
+      memory: 512Mi
+  autoscaling:
+    minReplicas: 2
+    maxReplicas: 5
+    targetCPUUtilizationPercentage: 70
+
+recco:
+  name: recco
+  namespace: crafista
+  replicaCount: 1
+  image:
+    repository: datascientestjkr/devops-certification-project-recco
+    tag: latest
+  service:
+    port: 8080
+    type: ClusterIP
+
+
+voting:
+  name: voting
+  namespace: crafista
+  replicaCount: 1
+  image:
+    repository: datascientestjkr/devops-certification-project-voting
+    tag: latest
+  service:
+    port: 8080
+    type: ClusterIP
+
+ingress:
+  name: crafista-ingress
+  namespace: crafista
+  tlsSecretName: crafista-tls
+  # TEMPORARY REDACTION: restore the public hostname before deployment.
+  host: XX
+  serviceName: frontend
+  servicePort: 3000

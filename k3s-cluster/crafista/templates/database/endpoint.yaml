@@ -1,0 +1,12 @@
+apiVersion: v1
+kind: Endpoints
+metadata:
+  name: {{ .Values.database.name }}
+  namespace: {{ .Values.database.namespace }}
+
+subsets:
+- addresses:
+  - ip: {{ .Values.database.host }}
+
+  ports:
+  - port: {{ .Values.database.port }}

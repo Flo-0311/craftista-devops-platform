@@ -1,0 +1,569 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: postgres-dashboard
+  namespace: monitoring
+  labels:
+    grafana_dashboard: "1"
+data:
+  catalogue-products-dashboard.json: |
+    {
+      "annotations": {
+        "list": [
+          {
+            "builtIn": 1,
+            "datasource": { "type": "grafana", "uid": "-- Grafana --" },
+            "enable": true,
+            "hide": true,
+            "iconColor": "rgba(0, 211, 255, 1)",
+            "name": "Annotations & Alerts",
+            "type": "dashboard"
+          }
+        ]
+      },
+      "editable": true,
+      "fiscalYearStartMonth": 0,
+      "graphTooltip": 0,
+      "id": null,
+      "links": [],
+      "liveNow": true,
+      "panels": [
+        {
+          "id": 1,
+          "title": "Produkte gesamt",
+          "description": "Gesamtzahl der Zeilen in products",
+          "type": "stat",
+          "datasource": { "type": "postgres", "uid": "${datasource}" },
+          "gridPos": { "x": 0, "y": 0, "w": 6, "h": 4 },
+          "targets": [
+            {
+              "refId": "A",
+              "datasource": { "type": "postgres", "uid": "${datasource}" },
+              "format": "table",
+              "rawSql": "SELECT count(*) AS value FROM products;"
+            }
+          ],
+          "options": {
+            "reduceOptions": { "calcs": ["lastNotNull"], "fields": "", "values": false },
+            "orientation": "auto",
+            "textMode": "auto",
+            "colorMode": "value",
+            "graphMode": "none",
+            "justifyMode": "auto"
+          },
+          "fieldConfig": {
+            "defaults": { "unit": "short" },
+            "overrides": []
+          }
+        },
+        {
+          "id": 2,
+          "title": "Tabellengröße (products)",
+          "description": "Größe inkl. Indizes",
+          "type": "stat",
+          "datasource": { "type": "postgres", "uid": "${datasource}" },
+          "gridPos": { "x": 6, "y": 0, "w": 6, "h": 4 },
+          "targets": [
+            {
+              "refId": "A",
+              "datasource": { "type": "postgres", "uid": "${datasource}" },
+              "format": "table",
+              "rawSql": "SELECT pg_total_relation_size('public.products') AS value;"
+            }
+          ],
+          "options": {
+            "reduceOptions": { "calcs": ["lastNotNull"], "fields": "", "values": false },
+            "orientation": "auto",
+            "textMode": "auto",
+            "colorMode": "value",
+            "graphMode": "none",
+            "justifyMode": "auto"
+          },
+          "fieldConfig": {
+            "defaults": { "unit": "bytes" },
+            "overrides": []
+          }
+        },
+        {
+          "id": 3,
+          "title": "Datenbankgröße (catalogue)",
+          "description": "Gesamtgröße der Datenbank",
+          "type": "stat",
+          "datasource": { "type": "postgres", "uid": "${datasource}" },
+          "gridPos": { "x": 12, "y": 0, "w": 6, "h": 4 },
+          "targets": [
+            {
+              "refId": "A",
+              "datasource": { "type": "postgres", "uid": "${datasource}" },
+              "format": "table",
+              "rawSql": "SELECT pg_database_size(current_database()) AS value;"
+            }
+          ],
+          "options": {
+            "reduceOptions": { "calcs": ["lastNotNull"], "fields": "", "values": false },
+            "orientation": "auto",
+            "textMode": "auto",
+            "colorMode": "value",
+            "graphMode": "none",
+            "justifyMode": "auto"
+          },
+          "fieldConfig": {
+            "defaults": { "unit": "bytes" },
+            "overrides": []
+          }
+        },
+        {
+          "id": 4,
+          "title": "Neue Produkte heute",
+          "description": "Anzahl Produkte mit date_added = heute",
+          "type": "stat",
+          "datasource": { "type": "postgres", "uid": "${datasource}" },
+          "gridPos": { "x": 18, "y": 0, "w": 6, "h": 4 },
+          "targets": [
+            {
+              "refId": "A",
+              "datasource": { "type": "postgres", "uid": "${datasource}" },
+              "format": "table",
+              "rawSql": "SELECT count(*) AS value FROM products WHERE date_added = current_date;"
+            }
+          ],
+          "options": {
+            "reduceOptions": { "calcs": ["lastNotNull"], "fields": "", "values": false },
+            "orientation": "auto",
+            "textMode": "auto",
+            "colorMode": "value",
+            "graphMode": "area",
+            "justifyMode": "auto"
+          },
+          "fieldConfig": {
+            "defaults": {
+              "unit": "short",
+              "thresholds": {
+                "mode": "absolute",
+                "steps": [
+                  { "color": "blue", "value": null },
+                  { "color": "green", "value": 1 }
+                ]
+              }
+            },
+            "overrides": []
+          }
+        },
+        {
+          "id": 5,
+          "title": "Produkte ohne Bild",
+          "description": "image_url NULL oder leer",
+          "type": "stat",
+          "datasource": { "type": "postgres", "uid": "${datasource}" },
+          "gridPos": { "x": 0, "y": 4, "w": 8, "h": 4 },
+          "targets": [
+            {
+              "refId": "A",
+              "datasource": { "type": "postgres", "uid": "${datasource}" },
+              "format": "table",
+              "rawSql": "SELECT count(*) AS value FROM products WHERE image_url IS NULL OR image_url = '';"
+            }
+          ],
+          "options": {
+            "reduceOptions": { "calcs": ["lastNotNull"], "fields": "", "values": false },
+            "orientation": "auto",
+            "textMode": "auto",
+            "colorMode": "value",
+            "graphMode": "none",
+            "justifyMode": "auto"
+          },
+          "fieldConfig": {
+            "defaults": {
+              "unit": "short",
+              "thresholds": {
+                "mode": "absolute",
+                "steps": [
+                  { "color": "green", "value": null },
+                  { "color": "orange", "value": 1 }
+                ]
+              }
+            },
+            "overrides": []
+          }
+        },
+        {
+          "id": 6,
+          "title": "Produkte ohne Beschreibung",
+          "description": "description NULL oder leer",
+          "type": "stat",
+          "datasource": { "type": "postgres", "uid": "${datasource}" },
+          "gridPos": { "x": 8, "y": 4, "w": 8, "h": 4 },
+          "targets": [
+            {
+              "refId": "A",
+              "datasource": { "type": "postgres", "uid": "${datasource}" },
+              "format": "table",
+              "rawSql": "SELECT count(*) AS value FROM products WHERE description IS NULL OR description = '';"
+            }
+          ],
+          "options": {
+            "reduceOptions": { "calcs": ["lastNotNull"], "fields": "", "values": false },
+            "orientation": "auto",
+            "textMode": "auto",
+            "colorMode": "value",
+            "graphMode": "none",
+            "justifyMode": "auto"
+          },
+          "fieldConfig": {
+            "defaults": {
+              "unit": "short",
+              "thresholds": {
+                "mode": "absolute",
+                "steps": [
+                  { "color": "green", "value": null },
+                  { "color": "orange", "value": 1 }
+                ]
+              }
+            },
+            "overrides": []
+          }
+        },
+        {
+          "id": 7,
+          "title": "Ø Beschreibungslänge",
+          "description": "Durchschnittliche Zeichenlänge von description",
+          "type": "stat",
+          "datasource": { "type": "postgres", "uid": "${datasource}" },
+          "gridPos": { "x": 16, "y": 4, "w": 8, "h": 4 },
+          "targets": [
+            {
+              "refId": "A",
+              "datasource": { "type": "postgres", "uid": "${datasource}" },
+              "format": "table",
+              "rawSql": "SELECT round(avg(length(description))) AS value FROM products WHERE description IS NOT NULL;"
+            }
+          ],
+          "options": {
+            "reduceOptions": { "calcs": ["lastNotNull"], "fields": "", "values": false },
+            "orientation": "auto",
+            "textMode": "auto",
+            "colorMode": "value",
+            "graphMode": "none",
+            "justifyMode": "auto"
+          },
+          "fieldConfig": {
+            "defaults": { "unit": "short" },
+            "overrides": []
+          }
+        },
+        {
+          "id": 8,
+          "title": "Produktwachstum über Zeit",
+          "description": "Echte historische Daten aus date_added: neue Produkte pro Tag und kumulative Gesamtzahl",
+          "type": "timeseries",
+          "datasource": { "type": "postgres", "uid": "${datasource}" },
+          "gridPos": { "x": 0, "y": 8, "w": 24, "h": 8 },
+          "targets": [
+            {
+              "refId": "A",
+              "datasource": { "type": "postgres", "uid": "${datasource}" },
+              "format": "time_series",
+              "rawSql": "SELECT date_added::timestamp AS time, count(*) AS neue_produkte, sum(count(*)) OVER (ORDER BY date_added) AS produkte_gesamt FROM products GROUP BY date_added ORDER BY date_added;"
+            }
+          ],
+          "options": {
+            "legend": { "displayMode": "list", "placement": "bottom", "calcs": ["last", "max"] },
+            "tooltip": { "mode": "multi" }
+          },
+          "fieldConfig": {
+            "defaults": {
+              "unit": "short",
+              "custom": { "drawStyle": "bars", "lineWidth": 2, "fillOpacity": 20, "spanNulls": true }
+            },
+            "overrides": [
+              {
+                "matcher": { "id": "byName", "options": "produkte_gesamt" },
+                "properties": [
+                  { "id": "custom.drawStyle", "value": "line" },
+                  { "id": "custom.fillOpacity", "value": 5 }
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "id": 9,
+          "title": "Neueste Produkte",
+          "description": "Zuletzt hinzugefügte Produkte",
+          "type": "table",
+          "datasource": { "type": "postgres", "uid": "${datasource}" },
+          "gridPos": { "x": 0, "y": 16, "w": 24, "h": 8 },
+          "targets": [
+            {
+              "refId": "A",
+              "datasource": { "type": "postgres", "uid": "${datasource}" },
+              "format": "table",
+              "rawSql": "SELECT id, name, date_added, left(description, 100) AS description, image_url FROM products ORDER BY date_added DESC, id DESC LIMIT 20;"
+            }
+          ],
+          "options": {
+            "showHeader": true,
+            "sortBy": [{ "displayName": "date_added", "desc": true }]
+          },
+          "fieldConfig": {
+            "defaults": { "custom": { "align": "auto", "filterable": true } },
+            "overrides": []
+          }
+        },
+        {
+          "id": 10,
+          "title": "Aktive Verbindungen",
+          "description": "Anzahl Verbindungen mit state = 'active'",
+          "type": "stat",
+          "datasource": { "type": "postgres", "uid": "${datasource}" },
+          "gridPos": { "x": 0, "y": 24, "w": 6, "h": 4 },
+          "targets": [
+            {
+              "refId": "A",
+              "datasource": { "type": "postgres", "uid": "${datasource}" },
+              "format": "table",
+              "rawSql": "SELECT count(*) AS value FROM pg_stat_activity WHERE state = 'active';"
+            }
+          ],
+          "options": {
+            "reduceOptions": { "calcs": ["lastNotNull"], "fields": "", "values": false },
+            "orientation": "auto",
+            "textMode": "auto",
+            "colorMode": "value",
+            "graphMode": "area",
+            "justifyMode": "auto"
+          },
+          "fieldConfig": {
+            "defaults": {
+              "unit": "short",
+              "thresholds": {
+                "mode": "absolute",
+                "steps": [
+                  { "color": "green", "value": null },
+                  { "color": "yellow", "value": 50 },
+                  { "color": "red", "value": 90 }
+                ]
+              }
+            },
+            "overrides": []
+          }
+        },
+        {
+          "id": 11,
+          "title": "Cache Hit Ratio",
+          "description": "Anteil Blöcke aus Shared Buffer Cache statt Platte",
+          "type": "gauge",
+          "datasource": { "type": "postgres", "uid": "${datasource}" },
+          "gridPos": { "x": 6, "y": 24, "w": 6, "h": 4 },
+          "targets": [
+            {
+              "refId": "A",
+              "datasource": { "type": "postgres", "uid": "${datasource}" },
+              "format": "table",
+              "rawSql": "SELECT round(100.0 * sum(blks_hit) / nullif(sum(blks_hit + blks_read), 0), 2) AS value FROM pg_stat_database;"
+            }
+          ],
+          "options": {
+            "reduceOptions": { "calcs": ["lastNotNull"], "fields": "", "values": false },
+            "orientation": "auto",
+            "showThresholdLabels": false,
+            "showThresholdMarkers": true
+          },
+          "fieldConfig": {
+            "defaults": {
+              "unit": "percent",
+              "min": 0,
+              "max": 100,
+              "thresholds": {
+                "mode": "absolute",
+                "steps": [
+                  { "color": "red", "value": null },
+                  { "color": "yellow", "value": 90 },
+                  { "color": "green", "value": 99 }
+                ]
+              }
+            },
+            "overrides": []
+          }
+        },
+        {
+          "id": 12,
+          "title": "Deadlocks (kumulativ)",
+          "description": "Summe seit letztem Stats-Reset",
+          "type": "stat",
+          "datasource": { "type": "postgres", "uid": "${datasource}" },
+          "gridPos": { "x": 12, "y": 24, "w": 6, "h": 4 },
+          "targets": [
+            {
+              "refId": "A",
+              "datasource": { "type": "postgres", "uid": "${datasource}" },
+              "format": "table",
+              "rawSql": "SELECT sum(deadlocks) AS value FROM pg_stat_database;"
+            }
+          ],
+          "options": {
+            "reduceOptions": { "calcs": ["lastNotNull"], "fields": "", "values": false },
+            "orientation": "auto",
+            "textMode": "auto",
+            "colorMode": "value",
+            "graphMode": "none",
+            "justifyMode": "auto"
+          },
+          "fieldConfig": {
+            "defaults": {
+              "unit": "short",
+              "thresholds": {
+                "mode": "absolute",
+                "steps": [
+                  { "color": "green", "value": null },
+                  { "color": "red", "value": 1 }
+                ]
+              }
+            },
+            "overrides": []
+          }
+        },
+        {
+          "id": 13,
+          "title": "Wartende Locks",
+          "description": "Nicht gewährte Locks (Blockaden)",
+          "type": "stat",
+          "datasource": { "type": "postgres", "uid": "${datasource}" },
+          "gridPos": { "x": 18, "y": 24, "w": 6, "h": 4 },
+          "targets": [
+            {
+              "refId": "A",
+              "datasource": { "type": "postgres", "uid": "${datasource}" },
+              "format": "table",
+              "rawSql": "SELECT count(*) AS value FROM pg_locks WHERE NOT granted;"
+            }
+          ],
+          "options": {
+            "reduceOptions": { "calcs": ["lastNotNull"], "fields": "", "values": false },
+            "orientation": "auto",
+            "textMode": "auto",
+            "colorMode": "value",
+            "graphMode": "none",
+            "justifyMode": "auto"
+          },
+          "fieldConfig": {
+            "defaults": {
+              "unit": "short",
+              "thresholds": {
+                "mode": "absolute",
+                "steps": [
+                  { "color": "green", "value": null },
+                  { "color": "orange", "value": 1 },
+                  { "color": "red", "value": 5 }
+                ]
+              }
+            },
+            "overrides": []
+          }
+        },
+        {
+          "id": 14,
+          "title": "Aktuelle Query-Abfragen",
+          "description": "Alle nicht-idle Verbindungen mit laufender Query, Laufzeit und Wartestatus",
+          "type": "table",
+          "datasource": { "type": "postgres", "uid": "${datasource}" },
+          "gridPos": { "x": 0, "y": 28, "w": 24, "h": 8 },
+          "targets": [
+            {
+              "refId": "A",
+              "datasource": { "type": "postgres", "uid": "${datasource}" },
+              "format": "table",
+              "rawSql": "SELECT pid, usename, datname, state, wait_event_type, wait_event, now() - query_start AS duration, left(query, 120) AS query FROM pg_stat_activity WHERE state != 'idle' AND pid <> pg_backend_pid() ORDER BY duration DESC LIMIT 25;"
+            }
+          ],
+          "options": {
+            "showHeader": true,
+            "sortBy": [{ "displayName": "duration", "desc": true }]
+          },
+          "fieldConfig": {
+            "defaults": { "custom": { "align": "auto", "filterable": true } },
+            "overrides": []
+          }
+        },
+        {
+          "id": 15,
+          "title": "Größte Tabellen (Speicherverbrauch)",
+          "description": "Alle Tabellen der aktuellen Datenbank nach Größe",
+          "type": "table",
+          "datasource": { "type": "postgres", "uid": "${datasource}" },
+          "gridPos": { "x": 0, "y": 36, "w": 12, "h": 8 },
+          "targets": [
+            {
+              "refId": "A",
+              "datasource": { "type": "postgres", "uid": "${datasource}" },
+              "format": "table",
+              "rawSql": "SELECT relname AS tabelle, pg_total_relation_size(relid) AS groesse_bytes, n_live_tup AS zeilen FROM pg_stat_user_tables ORDER BY pg_total_relation_size(relid) DESC LIMIT 20;"
+            }
+          ],
+          "options": { "showHeader": true },
+          "fieldConfig": {
+            "defaults": { "custom": { "align": "auto", "filterable": true } },
+            "overrides": [
+              {
+                "matcher": { "id": "byName", "options": "groesse_bytes" },
+                "properties": [{ "id": "unit", "value": "bytes" }]
+              }
+            ]
+          }
+        },
+        {
+          "id": 16,
+          "title": "Datenbankgröße (live)",
+          "description": "Baut sich bei aktivem Auto-Refresh auf, solange das Dashboard offen ist (kein historisierter Postgres-Wert)",
+          "type": "timeseries",
+          "datasource": { "type": "postgres", "uid": "${datasource}" },
+          "gridPos": { "x": 12, "y": 36, "w": 12, "h": 8 },
+          "targets": [
+            {
+              "refId": "A",
+              "datasource": { "type": "postgres", "uid": "${datasource}" },
+              "format": "time_series",
+              "rawSql": "SELECT now() AS time, pg_database_size(current_database()) AS db_groesse, pg_total_relation_size('public.products') AS products_groesse;"
+            }
+          ],
+          "options": {
+            "legend": { "displayMode": "list", "placement": "bottom", "calcs": ["last"] },
+            "tooltip": { "mode": "multi" }
+          },
+          "fieldConfig": {
+            "defaults": {
+              "unit": "bytes",
+              "custom": { "drawStyle": "line", "lineWidth": 2, "fillOpacity": 10, "spanNulls": true }
+            },
+            "overrides": []
+          }
+        }
+      ],
+      "refresh": "30s",
+      "schemaVersion": 39,
+      "tags": ["postgresql", "catalogue", "products", "monitoring"],
+      "templating": {
+        "list": [
+          {
+            "current": {},
+            "hide": 0,
+            "label": "PostgreSQL Datasource",
+            "name": "datasource",
+            "options": [],
+            "query": "postgres",
+            "refresh": 1,
+            "regex": "",
+            "type": "datasource"
+          }
+        ]
+      },
+      "time": { "from": "now-6h", "to": "now" },
+      "timepicker": {
+        "refresh_intervals": ["5s", "10s", "30s", "1m", "5m", "15m", "30m", "1h", "2h", "1d"]
+      },
+      "timezone": "browser",
+      "title": "Catalogue / Products Monitoring",
+      "description": "Spezifisches Monitoring für die products-Tabelle in catalogue (Zeilenanzahl, Wachstum, Datenqualität) plus allgemeine PostgreSQL-Metriken (Verbindungen, Cache Hit Ratio, aktuelle Queries, Speicherverbrauch).",
+      "uid": "catalogue-products-monitoring",
+      "version": 1
+    }

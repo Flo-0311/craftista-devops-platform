@@ -1,0 +1,8 @@
+{
+    "app_version": "1.0.0",
+    "data_source": "json",
+    "db_host": "XX.XX.XX.XX",
+    "db_name": "catalogue",
+    "db_user": "XX",
+    "db_password": "XX"
+}

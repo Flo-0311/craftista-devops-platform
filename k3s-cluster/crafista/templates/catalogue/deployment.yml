@@ -1,0 +1,43 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ .Values.catalogue.name }}
+  namespace: {{ .Values.catalogue.namespace }}
+  labels:
+    app: {{ .Values.catalogue.name }}
+spec:
+  replicas: {{ .Values.catalogue.replicaCount }}
+  selector:
+    matchLabels:
+      app: {{ .Values.catalogue.name }}
+  template:
+    metadata:
+      labels:
+        app: {{ .Values.catalogue.name }}
+    spec:
+      containers:
+      - name: {{ .Values.catalogue.name }}
+        image: "{{ .Values.catalogue.image.repository }}:{{ .Values.catalogue.image.tag }}"
+        ports:
+        - containerPort: {{ .Values.catalogue.service.port }}
+  env:
+    - name: DB_HOST
+      valueFrom:
+       secretKeyRef:
+         name: {{ .Values.database.name }}-secret
+         key: db_host
+    - name: DB_NAME
+      valueFrom:
+        secretKeyRef:
+          name: {{ .Values.database.name }}-secret
+          key: db_name
+    - name: DB_USER
+      valueFrom:
+        secretKeyRef:
+          name: {{ .Values.database.name }}-secret
+          key: db_user
+    - name: DB_PASSWORD
+      valueFrom:
+        secretKeyRef:
+          name: {{ .Values.database.name }}-secret
+          key: db_password

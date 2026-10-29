@@ -1,0 +1,52 @@
+networks:
+  craftista:
+    driver: bridge
+
+services:
+  frontend:
+    image: datascientestjkr/devops-certification-project-frontend:latest
+    build:
+      context: ./frontend
+    ports:
+      - "80:3000"
+    networks:
+      - craftista
+
+  catalogue:
+    image: datascientestjkr/devops-certification-project-catalogue:latest
+    build:
+      context: ./catalogue
+    ports:
+      - "5000:5000"
+    networks:
+      - craftista
+
+  catalogue-db:
+    image: datascientestjkr/devops-certification-project-postgres:latest
+    environment:
+      # TEMPORARY REDACTION: set matching local database credentials before running.
+      POSTGRES_USER: XX
+      POSTGRES_PASSWORD: XX
+      POSTGRES_DB: catalogue
+    networks:
+      - craftista
+
+  recco:
+    image: datascientestjkr/devops-certification-project-recco:latest
+    build:
+      context: ./recommendation
+    ports:
+      - "8080:8080"
+    networks:
+      - craftista
+
+  voting:
+    image: datascientestjkr/devops-certification-project-voting:latest
+    build:
+      context: ./voting
+    ports:
+      - "8081:8080"
+    depends_on:
+      - catalogue
+    networks:
+      - craftista
